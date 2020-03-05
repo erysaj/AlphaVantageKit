@@ -21,8 +21,12 @@ let package = Package(
         .target(
             name: "AlphaVantageKit",
             dependencies: []),
+        .target(
+            name: "TestResources",
+            dependencies: []
+        ),
         .testTarget(
             name: "AlphaVantageKitTests",
-            dependencies: ["AlphaVantageKit"]),
+            dependencies: ["AlphaVantageKit", "TestResources"]),
     ]
 )

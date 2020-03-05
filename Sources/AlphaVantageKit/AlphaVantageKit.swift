@@ -7,6 +7,9 @@
 //
 
 import Foundation
+
+#if os(iOS)
+
 import UIKit
 
 /*@IBDesignable*/ // Xcode does not support IBDesignable, known issue
@@ -48,3 +51,5 @@ public class AlphaVantageKit: UIView {
         self.layoutIfNeeded()
     }
 }
+
+#endif
