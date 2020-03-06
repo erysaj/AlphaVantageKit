@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class Loader {
+public class AssetReader {
   private var baseURL: URL
 
   public init() {
@@ -16,15 +16,15 @@ public class Loader {
     baseURL = thisDir.appendingPathComponent("data")
   }
 
-  public func load(path: String) throws -> Data {
+  public func read(path: String) throws -> Data {
     let fileURL = URL(string: path, relativeTo: baseURL)
     let data = try Data(contentsOf: fileURL!)
     return data
   }
 
-  public func loadJSON<T>(_ type: T.Type, path: String) throws -> T where T: Decodable {
+  public func readJSON<T>(_ type: T.Type, path: String) throws -> T where T: Decodable {
     let decoder = JSONDecoder()
-    let data = try load(path: path)
+    let data = try read(path: path)
     return try decoder.decode(type, from: data)
   }
 }

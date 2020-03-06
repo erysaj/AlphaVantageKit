@@ -9,7 +9,7 @@ let package = Package(
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "AlphaVantageKit",
-            targets: ["AlphaVantageKit"]),
+            targets: ["AlphaVantageKit", "AlphaVantageStubs"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -22,11 +22,11 @@ let package = Package(
             name: "AlphaVantageKit",
             dependencies: []),
         .target(
-            name: "TestResources",
+            name: "AlphaVantageStubs",
             dependencies: []
         ),
         .testTarget(
             name: "AlphaVantageKitTests",
-            dependencies: ["AlphaVantageKit", "TestResources"]),
+            dependencies: ["AlphaVantageKit", "AlphaVantageStubs"]),
     ]
 )

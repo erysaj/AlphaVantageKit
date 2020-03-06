@@ -6,14 +6,14 @@
 //
 
 import XCTest
-import TestResources
+import AlphaVantageStubs
 @testable import AlphaVantageKit
 
 final class SymbolSearchTests: XCTestCase {
-  let loader = Loader()
+  let assets = AssetReader()
 
   func testDecoding() {
-    let rs = try? loader.loadJSON(SymbolSearchRs.self, path: "search_results.json")
+    let rs = try? assets.readJSON(SymbolSearchRs.self, path: "search_results.json")
     XCTAssertNotNil(rs)
   }
 

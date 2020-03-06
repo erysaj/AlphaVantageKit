@@ -6,14 +6,14 @@
 //
 
 import XCTest
-import TestResources
+import AlphaVantageStubs
 @testable import AlphaVantageKit
 
 final class TimeSeriesTests: XCTestCase {
-  let loader = Loader()
+  let assets = AssetReader()
   
   func testDecodingCompact() {
-    let rs = try? loader.loadJSON(TimeSeriesRs.self, path: "daily_MSFT_compact.json")
+    let rs = try? assets.readJSON(TimeSeriesRs.self, path: "daily_MSFT_compact.json")
     XCTAssertNotNil(rs)
 
     if let meta = rs?.meta {
