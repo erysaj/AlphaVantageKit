@@ -9,6 +9,13 @@ import Foundation
 
 fileprivate let baseURLString = "https://www.alphavantage.co/query"
 
+public enum ApiResponse<Rs> {
+  case success(payload: Rs)
+  case decodingError(Error)
+  case httpError(httpCode: Int)
+  case networkError(Error)
+}
+
 public class Client {
   let session: URLSession
   let builder: URLBuilder
