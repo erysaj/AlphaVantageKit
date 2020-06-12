@@ -19,9 +19,7 @@ final class TimeSeriesTests: XCTestCase {
     if let meta = rs?.meta {
       XCTAssertTrue(meta.information.starts(with: "Daily Prices"))
       XCTAssertEqual(meta.symbol, "MSFT")
-      XCTAssertEqual(meta.lastRefreshed.year, 2019)
-      XCTAssertEqual(meta.lastRefreshed.month, 7)
-      XCTAssertEqual(meta.lastRefreshed.day, 12)
+      XCTAssertEqual(meta.lastRefreshed, Date.init(year: 2019, month: 7, day: 12))
     }
   }
 

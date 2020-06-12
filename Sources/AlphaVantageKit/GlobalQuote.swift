@@ -28,7 +28,7 @@ public struct GlobalQuoteRs: Decodable {
     public var low: String
     public var price: String
     public var volume: String
-    public var latestTradingDay: String
+    public var latestTradingDay: Date
     public var prevClose: String
     public var change: String
     public var changePercent: String

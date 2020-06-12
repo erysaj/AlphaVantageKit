@@ -23,7 +23,7 @@ final class GlobalQuoteTests: XCTestCase {
     XCTAssertEqual(quote.low, "138.0100")
     XCTAssertEqual(quote.price, "138.9000")
     XCTAssertEqual(quote.volume, "17725458")
-    XCTAssertEqual(quote.latestTradingDay, "2019-07-12")
+    XCTAssertEqual(quote.latestTradingDay, Date.init(year: 2019, month: 7, day: 12))
     XCTAssertEqual(quote.prevClose, "138.4000")
     XCTAssertEqual(quote.change, "0.5000")
     XCTAssertEqual(quote.changePercent, "0.3613%")
