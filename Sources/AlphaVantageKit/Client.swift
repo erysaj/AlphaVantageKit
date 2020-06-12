@@ -9,10 +9,10 @@ import Foundation
 
 fileprivate let baseURLString = "https://www.alphavantage.co/query"
 
-public enum ApiResponse<Rs> {
-  case success(payload: Rs)
+public enum ApiResult<Rs> {
+  case success(Rs)
   case decodingError(Error)
-  case httpError(httpCode: Int)
+  case httpError(statusCode: Int)
   case networkError(Error)
 }
 
@@ -24,6 +24,41 @@ public class Client {
     let components = URLComponents(string: baseURLString)!
     session = URLSession(configuration: .default)
     builder = URLBuilder(components: components, secret: key)
+  }
+
+  public func quote(symbol: String, completion: @escaping (ApiResult<GlobalQuoteRs>) -> Void) {
+    let rq = GlobalQuoteRq(symbol: symbol)
+    let url = builder.buildURL(rq)
+
+    let finish = { (result: ApiResult<GlobalQuoteRs>) in
+      DispatchQueue.main.async {
+        completion(result)
+      }
+    }
+    
+    let task = session.dataTask(with: url, completionHandler: { data, response, error in
+      guard error != nil else {
+        finish(.networkError(error!))
+        return
+      }
+      guard let httpResponse = response as? HTTPURLResponse else {
+        finish(.httpError(statusCode: -1))
+        return
+      }
+      guard httpResponse.statusCode == 200 else {
+        finish(.httpError(statusCode: httpResponse.statusCode))
+        return
+      }
+      let decoder = JSONDecoder()
+      do {
+        let payload = try decoder.decode(GlobalQuoteRs.self, from: data!)
+        finish(.success(payload))
+      }
+      catch {
+        finish(.decodingError(error))
+      }
+    })
+    task.resume()
   }
 
   public func search(keywords: String, completion: @escaping (SymbolSearchRs?) -> Void) {
