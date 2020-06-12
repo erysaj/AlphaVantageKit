@@ -16,7 +16,7 @@ public struct TimeSeriesRs {
       case rows = "Time Series (Daily)"
   }
 
-  public struct Meta {
+  public struct Meta: Decodable {
     var information: String
     var symbol: String
     var lastRefreshed: Date
@@ -49,20 +49,6 @@ public struct TimeSeriesRs {
   }
 }
 
-extension TimeSeriesRs.Meta : Decodable {
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    let information = try container.decode(String.self, forKey: .information)
-    let symbol = try container.decode(String.self, forKey: .symbol)
-    let lastRefreshedString = try container.decode(String.self, forKey: .lastRefreshed)
-    let outputSize = try container.decode(String.self, forKey: .outputSize)
-    let timeZone = try container.decode(String.self, forKey: .timeZone)
-    let lastRefreshed = try Date.parse(from: lastRefreshedString)
-
-    self.init(information: information, symbol: symbol, lastRefreshed: lastRefreshed, outputSize: outputSize, timeZone: timeZone)
-  }
-}
-
 extension TimeSeriesRs : Decodable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -70,7 +56,7 @@ extension TimeSeriesRs : Decodable {
     let rowsContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .rows)
     var rows = Dictionary<Date, Row>()
     try rowsContainer.allKeys.forEach { key in
-      let date = try Date.parse(from: key.stringValue)
+      let date = try Date.init(key.stringValue)
       let row = try rowsContainer.decode(Row.self, forKey: key)
       rows[date] = row
     }

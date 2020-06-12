@@ -37,7 +37,7 @@ extension Date {
 
   private struct ParserError : Error {}
 
-  static func parse(from s: String) throws -> Date {
+  init(_ s: String) throws {
     var year: Int16 = 0
     var month: Int8 = 0
     var day: Int8 = 0
@@ -89,9 +89,19 @@ extension Date {
     }
     switch state {
       case .dd(2):
-        return Date(year: year, month: month, day: day)
+        self.year = year
+        self.month = month
+        self.day = day
       default:
         throw ParserError()
     }
+  }
+}
+
+extension Date : Decodable {
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    let text = try container.decode(String.self)
+    try self.init(text)
   }
 }
