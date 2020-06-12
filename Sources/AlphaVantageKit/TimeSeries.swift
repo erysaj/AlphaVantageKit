@@ -7,6 +7,11 @@
 
 import Foundation
 
+public enum OutputSize: String, Decodable {
+  case compact = "Compact"
+  case full = "Full size"
+}
+
 public struct TimeSeriesRs {
   var meta: Meta
   var rows: Dictionary<Date, Row>;
@@ -20,7 +25,7 @@ public struct TimeSeriesRs {
     var information: String
     var symbol: String
     var lastRefreshed: Date
-    var outputSize: String
+    var outputSize: OutputSize
     var timeZone: String
 
     private enum CodingKeys: String, CodingKey {
