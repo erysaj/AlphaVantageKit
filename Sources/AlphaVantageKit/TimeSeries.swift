@@ -61,9 +61,13 @@ extension TimeSeriesRs : Decodable {
     let rowsContainer = try container.nestedContainer(keyedBy: DynamicKey.self, forKey: .rows)
     var rows = Dictionary<Date, Row>()
     try rowsContainer.allKeys.forEach { key in
-      let date = try Date.init(key.stringValue)
       let row = try rowsContainer.decode(Row.self, forKey: key)
-      rows[date] = row
+      switch Date.parse(key.stringValue) {
+      case .success(let date):
+        rows[date] = row
+      case .failure(let err):
+        throw err
+      }
     }
     self.init(meta: meta, rows: rows)
   }

@@ -28,73 +28,116 @@ public struct Date : Equatable, Hashable, Comparable {
   }
 }
 
-extension Date {
-  private enum ParserState {
-    case yyyy(Int)
-    case mm(Int)
-    case dd(Int)
+extension Date : LosslessStringConvertible {
+  public init?(_ description: String) {
+    switch Date.parse(description) {
+    case .success(let date):
+      year = date.year
+      month = date.month
+      day = date.day
+    case .failure(_):
+      return nil
+    }
+  }
+  
+  public var description: String {
+    String(format: "%04d-%02d-%02d", year, month, day)
+  }
+  
+  public struct ParserError : Error {
+    /// Position in parsed string where error was detected
+    let pos: Int
+    /// Explanation why went wrong
+    let reason: String
   }
 
-  private struct ParserError : Error {}
+  enum ParserResult {
+    case success(Date)
+    case failure(ParserError)
+  }
 
-  init(_ s: String) throws {
-    var year: Int16 = 0
-    var month: Int8 = 0
-    var day: Int8 = 0
+  /// Parser state machine
+  private enum ParserState {
+    /// Parsing YYYY part
+    case yyyy(pos: Int, year: Int)
+    /// Parsing MM part
+    case mm(pos: Int, year: Int, month: Int)
+    /// Parsing DD part
+    case dd(pos: Int, year: Int, month: Int, day: Int)
+    /// Error occured
+    case error(ParserError)
 
-    var state: ParserState = .yyyy(0)
+    mutating func update(_ c: Character) {
+      switch self {
+        case .yyyy(let pos, let year):
+          if pos <= 4 {
+            guard c.isASCII && c.isWholeNumber else {
+              self = .error(.init(pos: pos, reason: "Digit expected"))
+              return
+            }
+            self = .yyyy(pos: pos + 1, year: 10 * year + c.wholeNumberValue!)
+          }
+          else {
+            guard c == "-" else {
+              self = .error(.init(pos: pos, reason: "'-' expected"))
+              return
+            }
+            self = .mm(pos: pos + 1, year: year, month: 0)
+          }
+      case .mm(let pos, let year, let month):
+        if pos <= 7 {
+          guard c.isASCII && c.isWholeNumber else {
+            self = .error(.init(pos: pos, reason: "Digit expected"))
+            return
+          }
+          self = .mm(pos: pos + 1, year: year, month: 10 * month + c.wholeNumberValue!)
+        }
+        else {
+          guard c == "-" else {
+            self = .error(.init(pos: pos, reason: "'-' expected"))
+            return
+          }
+          self = .dd(pos: pos + 1, year: year, month: month, day: 0)
+        }
+      case .dd(let pos, let year, let month, let day):
+        if pos <= 10 {
+          guard c.isASCII && c.isWholeNumber else {
+            self = .error(.init(pos: pos, reason: "Digit expected"))
+            return
+          }
+          self = .dd(pos: pos + 1, year: year, month: month, day: 10 * day + c.wholeNumberValue!)
+        }
+        else {
+          self = .error(.init(pos: pos, reason: "End expected"))
+        }
+      case .error(_):
+        break
+      }
+    }
 
+    func finish() -> ParserResult {
+      switch self {
+      case .dd(11, let year, let month, let day):
+        let date = Date(year: Int16(year), month: Int8(month), day: Int8(day))
+        return .success(date)
+      case .dd(let pos, _, _, _):
+        return .failure(.init(pos: pos, reason: "Unexpected end"))
+      case .mm(let pos, _, _):
+        return .failure(.init(pos: pos, reason: "Unexpected end"))
+      case .yyyy(let pos, _):
+        return .failure(.init(pos: pos, reason: "Unexpected end"))
+      case .error(let error):
+        return .failure(error)
+      }
+    }
+  }
+  
+  static func parse(_ s: String) -> ParserResult {
+    var state: ParserState = .yyyy(pos: 1, year: 0)
     for c in s {
-      if !c.isASCII {
-        throw ParserError()
-      }
-
-      switch state {
-        case .yyyy(let n):
-          if c.isHexDigit, n < 4 {
-            if let v = c.hexDigitValue, v < 10 {
-              year = year * Int16(10) + Int16(v)
-              state = .yyyy(n + 1)
-              continue
-            }
-          }
-          if c == "-", n == 4 {
-            state = .mm(0)
-            continue
-          }
-          throw ParserError()
-        case .mm(let n):
-          if c.isHexDigit, n < 2 {
-            if let v = c.hexDigitValue, v < 10 {
-              month = month * Int8(10) + Int8(v)
-              state = .mm(n + 1)
-              continue
-            }
-          }
-          if c == "-", n == 2 {
-            state = .dd(0)
-            continue
-          }
-          throw ParserError()
-        case .dd(let n):
-          if c.isHexDigit, n < 2 {
-            if let v = c.hexDigitValue, v < 10 {
-              day = day * Int8(10) + Int8(v)
-              state = .dd(n + 1)
-              continue
-            }
-          }
-          throw ParserError()
-      }
+      state.update(c)
     }
-    switch state {
-      case .dd(2):
-        self.year = year
-        self.month = month
-        self.day = day
-      default:
-        throw ParserError()
-    }
+    return state.finish()
   }
 }
 
@@ -102,6 +145,11 @@ extension Date : Decodable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let text = try container.decode(String.self)
-    try self.init(text)
+    switch Date.parse(text) {
+    case .success(let date):
+      self.init(year: date.year, month: date.month, day: date.day)
+    case .failure(let err):
+      throw err
+    }
   }
 }
