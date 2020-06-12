@@ -20,7 +20,7 @@ public class Client {
   let session: URLSession
   let builder: URLBuilder
   
-  public init(key: String) {
+  public init(key: String?) {
     let components = URLComponents(string: baseURLString)!
     session = URLSession(configuration: .default)
     builder = URLBuilder(components: components, secret: key)
@@ -77,13 +77,13 @@ public class Client {
 
   struct URLBuilder {
     let components: URLComponents
-    let secret: String
+    let secret: String?
 
     func buildURL<Rq>(_ rq: Rq) -> URL where Rq: ApiRequest {
       var components = self.components
       // configure query string
       var query = rq.queryItems
-      query.append(URLQueryItem(name: "apikey", value: secret))
+      query.append(URLQueryItem(name: "apikey", value: secret ?? "demo"))
       components.queryItems = query
 
       return components.url!
